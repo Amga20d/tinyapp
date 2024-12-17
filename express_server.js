@@ -15,8 +15,11 @@ app.get("/", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); 
-  res.send("Ok"); 
+  const longURL = req.body.longURL; 
+  const id = generateRandomString();
+  urlDatabase[id] = longURL;
+  console.log(urlDatabase);
+  res.redirect(`/urls/${id}`);
 });
 
 app.get("/urls.json", (req, res) => {
