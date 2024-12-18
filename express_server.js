@@ -1,16 +1,16 @@
 const express = require("express");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
+const { getUserByEmail } = require("./helpers");
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
-// Use cookie-session middleware
 app.use(cookieSession({
   name: 'session',
-  keys: ['key1', 'key2'], // keys for cookie encryption
+  keys: ['key1', 'key2'], 
 }));
 
 const urlDatabase = {
@@ -99,7 +99,7 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  const user = findUserByEmail(email);
+  const user = getUserByEmail(email, users);
   if (!user) {
     return res.status(403).send("Invalid email or password.");
   }
@@ -138,16 +138,16 @@ app.post("/register", (req, res) => {
   if (!email || !password) {
     return res.status(400).send("Email and password cannot be empty.");
   }
-  if (findUserByEmail(email)) {
+  if (getUserByEmail(email, users)) { 
     return res.status(400).send("Email is already registered.");
   }
 
   const userID = generateRandomString();
-  const hashedPassword = bcrypt.hashSync(password, 10); // Hash the password with bcrypt
+  const hashedPassword = bcrypt.hashSync(password, 10); 
   const newUser = {
     id: userID,
     email: email,
-    password: hashedPassword // Store the hashed password
+    password: hashedPassword 
   };
   users[userID] = newUser;
   req.session.user_id = userID;
@@ -221,15 +221,6 @@ function generateRandomString() {
     result += characters[randomIndex];
   }
   return result;
-}
-
-function findUserByEmail(email) {
-  for (let userID in users) {
-    if (users[userID].email === email) {
-      return users[userID];
-    }
-  }
-  return null;
 }
 
 function urlsForUser(id) {
