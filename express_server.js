@@ -137,6 +137,9 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.status(403).send("<html><body><h3>You must be logged in to view URLs</h3></body></html>");
+  }
   const templateVars = { 
     urls: urlDatabase,
     user: user
@@ -194,3 +197,12 @@ function findUserByEmail(email) {
   return null;
 };
 
+function urlsForUser(id) {
+  let userURLs = {};
+  for (let shortURL in urlDatabase) {
+    if (urlDatabase[shortURL].userID === id) {
+      userURLs[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return userURLs;
+}
