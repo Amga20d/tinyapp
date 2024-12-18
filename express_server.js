@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080;
 
@@ -22,14 +23,18 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "[email protected]",
-    password: "a",
+    password: "$2a$10$.UboIGb8rrv8nv./5wJA1.Skeed2F4G5Ozq95xKODC7.fKvUK9yL6",
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "[email protected]",
-    password: "b",
+    password: "b$2a$10$Y5EqL96pXjVBd5H1Sh4bjeIJHoDu7/Ge.vMDqvOhf9u0yz/GrnztG",
   },
 };
+console.log(bcrypt.hashSync('a', 10));
+console.log(bcrypt.hashSync('b', 10));
+
+
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -67,8 +72,6 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-
-
 app.post("/urls/:id/delete", (req, res) => {
   const user = users[req.cookies["user_id"]];
   const id = req.params.id;
@@ -85,15 +88,13 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-
-
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const user = findUserByEmail(email);
   if (!user) {
     return res.status(403).send("Invalid email or password.");
   }
-  if (user.password !== password) {
+  if (!bcrypt.compareSync(password, user.password)) {
     return res.status(403).send("Invalid email or password.");
   }
   res.cookie('user_id', user.id);
@@ -132,10 +133,11 @@ app.post("/register", (req, res) => {
     return res.status(400).send("Email is already registered.");
   }
   const userID = generateRandomString();
+  const hashedPassword = bcrypt.hashSync(password, 10); 
   const newUser = {
     id: userID,
     email: email,
-    password: password
+    password: hashedPassword
   };
   users[userID] = newUser;
   res.cookie('user_id', userID);
