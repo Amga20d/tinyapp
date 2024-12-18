@@ -35,7 +35,7 @@ Install all dependencies using npm.
 `npm install`
 
 Run the development web server.
-`node express_server.js`
+`npm start`
 
 Open your web browser and visit http://localhost:8080 to access TinyApp.
 
