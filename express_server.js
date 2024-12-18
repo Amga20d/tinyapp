@@ -31,10 +31,6 @@ const users = {
     password: "b$2a$10$Y5EqL96pXjVBd5H1Sh4bjeIJHoDu7/Ge.vMDqvOhf9u0yz/GrnztG",
   },
 };
-console.log(bcrypt.hashSync('a', 10));
-console.log(bcrypt.hashSync('b', 10));
-
-
 
 app.get("/", (req, res) => {
   res.send("Hello!");
