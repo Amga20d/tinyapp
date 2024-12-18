@@ -68,8 +68,14 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const userID = generateRandomString();
   const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).send("Email and password cannot be empty.");
+  }
+  if (findUserByEmail(email)) {
+    return res.status(400).send("Email is already registered.");
+  }  
+  const userID = generateRandomString();
   const newUser = {
     id: userID,
     email: email,
@@ -135,3 +141,13 @@ function generateRandomString() {
   }
   return result;
 };
+
+function findUserByEmail(email) {
+  for (let userID in users) {
+    if (users[userID].email === email) {
+      return users[userID];
+    }
+  }
+  return null;
+};
+
