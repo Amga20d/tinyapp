@@ -1,7 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
@@ -40,7 +40,7 @@ app.post("/urls", (req, res) => {
   if (!user) {
     return res.status(403).send("<html><body><h3>You must be logged in to shorten URLs</h3></body></html>");
   }
-  const longURL = req.body.longURL; 
+  const longURL = req.body.longURL;
   const id = generateRandomString();
   urlDatabase[id] = {
     longURL: longURL,
@@ -52,24 +52,40 @@ app.post("/urls", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   const user = users[req.cookies["user_id"]];
+  const id = req.params.id;
+  const newLongURL = req.body.longURL;
+  if (!urlDatabase[id]) {
+    return res.status(404).send("<html><body><h3>URL not found</h3></body></html>");
+  }
   if (!user) {
     return res.status(403).send("<html><body><h3>You must be logged in to edit URLs</h3></body></html>");
   }
-  const id = req.params.id;
-  const newLongURL = req.body.longURL;
+  if (urlDatabase[id].userID !== user.id) {
+    return res.status(403).send("<html><body><h3>You do not have permission to edit this URL</h3></body></html>");
+  }
   urlDatabase[id].longURL = newLongURL;
   res.redirect("/urls");
 });
 
+
+
 app.post("/urls/:id/delete", (req, res) => {
   const user = users[req.cookies["user_id"]];
+  const id = req.params.id;
+  if (!urlDatabase[id]) {
+    return res.status(404).send("<html><body><h3>URL not found</h3></body></html>");
+  }
   if (!user) {
     return res.status(403).send("<html><body><h3>You must be logged in to delete URLs</h3></body></html>");
   }
-  const id = req.params.id;
+  if (urlDatabase[id].userID !== user.id) {
+    return res.status(403).send("<html><body><h3>You do not have permission to delete this URL</h3></body></html>");
+  }
   delete urlDatabase[id];
   res.redirect("/urls");
 });
+
+
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
@@ -93,19 +109,19 @@ app.get("/register", (req, res) => {
   const user = users[req.cookies["user_id"]];
   if (user) {
     return res.redirect('/urls');
-  }  
+  }
   const templateVars = { user: user };
-  res.render("register", templateVars); 
+  res.render("register", templateVars);
 });
 
 app.get("/login", (req, res) => {
   const user = users[req.cookies["user_id"]];
   if (user) {
     return res.redirect('/urls');
-  }  
+  }
   const templateVars = { user: user };
   res.render("login", templateVars);
-});  
+});
 
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
@@ -114,7 +130,7 @@ app.post("/register", (req, res) => {
   }
   if (findUserByEmail(email)) {
     return res.status(400).send("Email is already registered.");
-  }  
+  }
   const userID = generateRandomString();
   const newUser = {
     id: userID,
@@ -140,8 +156,9 @@ app.get("/urls", (req, res) => {
   if (!user) {
     return res.status(403).send("<html><body><h3>You must be logged in to view URLs</h3></body></html>");
   }
-  const templateVars = { 
-    urls: urlDatabase,
+  const userURLs = urlsForUser(user.id);
+  const templateVars = {
+    urls: userURLs,
     user: user
   };
   res.render("urls_index", templateVars);
@@ -157,13 +174,25 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { 
-    id: req.params.id, 
-    longURL: urlDatabase[req.params.id].longURL,
-    user: req.cookies["user_id"]
-    };
+  const user = users[req.cookies["user_id"]];
+  const id = req.params.id;
+  if (!user) {
+    return res.status(403).send("<html><body><h3>You must be logged in to view URL details</h3></body></html>");
+  }
+  if (!urlDatabase[id]) {
+    return res.status(404).send("<html><body><h3>URL not found</h3></body></html>");
+  }
+  if (urlDatabase[id].userID !== user.id) {
+    return res.status(403).send("<html><body><h3>You do not have permission to view this URL</h3></body></html>");
+  }
+  const templateVars = {
+    id: id,
+    longURL: urlDatabase[id].longURL,
+    user: user
+  };
   res.render("urls_show", templateVars);
 });
+
 
 app.get("/u/:id", (req, res) => {
   const urlEntry = urlDatabase[req.params.id];
@@ -172,7 +201,6 @@ app.get("/u/:id", (req, res) => {
   }
   res.redirect(urlEntry.longURL);
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -186,7 +214,7 @@ function generateRandomString() {
     result += characters[randomIndex];
   }
   return result;
-};
+}
 
 function findUserByEmail(email) {
   for (let userID in users) {
@@ -195,7 +223,7 @@ function findUserByEmail(email) {
     }
   }
   return null;
-};
+}
 
 function urlsForUser(id) {
   let userURLs = {};
