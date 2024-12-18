@@ -14,16 +14,16 @@ URL Management: Edit and delete existing URLs.
 Access Control: Users can only see and manage their own URLs.
 
 ## Dependencies
-Node.js
-Express
-EJS
-bcryptjs
-cookie-session
+- Node.js
+- Express
+- EJS
+- bcryptjs
+- cookie-session
 
 ## Dev Dependencies
-Mocha (for testing)
-Chai (for assertions in testing)
-nodemon
+- Mocha (for testing)
+- Chai (for assertions in testing)
+- nodemon
 
 ## Getting Started
 Clone the repository to your local machine.
