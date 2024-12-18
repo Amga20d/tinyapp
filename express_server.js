@@ -8,8 +8,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -36,19 +42,30 @@ app.post("/urls", (req, res) => {
   }
   const longURL = req.body.longURL; 
   const id = generateRandomString();
-  urlDatabase[id] = longURL;
+  urlDatabase[id] = {
+    longURL: longURL,
+    userID: user.id
+  };
   console.log(urlDatabase);
   res.redirect(`/urls/${id}`);
 });
 
 app.post("/urls/:id", (req, res) => {
+  const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.status(403).send("<html><body><h3>You must be logged in to edit URLs</h3></body></html>");
+  }
   const id = req.params.id;
   const newLongURL = req.body.longURL;
-  urlDatabase[id] = newLongURL;
+  urlDatabase[id].longURL = newLongURL;
   res.redirect("/urls");
 });
 
 app.post("/urls/:id/delete", (req, res) => {
+  const user = users[req.cookies["user_id"]];
+  if (!user) {
+    return res.status(403).send("<html><body><h3>You must be logged in to delete URLs</h3></body></html>");
+  }
   const id = req.params.id;
   delete urlDatabase[id];
   res.redirect("/urls");
@@ -139,18 +156,18 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const templateVars = { 
     id: req.params.id, 
-    longURL: urlDatabase[req.params.id],
+    longURL: urlDatabase[req.params.id].longURL,
     user: req.cookies["user_id"]
     };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  if (!longURL) {
+  const urlEntry = urlDatabase[req.params.id];
+  if (!urlEntry) {
     return res.status(404).send("<html><body><h3>URL not found</h3></body></html>");
   }
-  res.redirect(longURL);
+  res.redirect(urlEntry.longURL);
 });
 
 
