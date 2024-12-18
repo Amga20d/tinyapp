@@ -51,8 +51,15 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const username = req.body.username;
-  res.cookie('user_id', username);
+  const { email, password } = req.body;
+  const user = findUserByEmail(email);
+  if (!user) {
+    return res.status(403).send("Invalid email or password.");
+  }
+  if (user.password !== password) {
+    return res.status(403).send("Invalid email or password.");
+  }
+  res.cookie('user_id', user.id);
   res.redirect('/urls');
 });
 
