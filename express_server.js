@@ -1,16 +1,17 @@
 const express = require("express");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
-const { getUserByEmail } = require("./helpers");
+const { getUserByEmail, urlsForUser } = require("./helpers");
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
+// Use cookie-session middleware
 app.use(cookieSession({
   name: 'session',
-  keys: ['key1', 'key2'], 
+  keys: ['key1', 'key2'], // keys for cookie encryption
 }));
 
 const urlDatabase = {
@@ -99,7 +100,7 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  const user = getUserByEmail(email, users);
+  const user = getUserByEmail(email, users); // Update function call
   if (!user) {
     return res.status(403).send("Invalid email or password.");
   }
@@ -138,16 +139,16 @@ app.post("/register", (req, res) => {
   if (!email || !password) {
     return res.status(400).send("Email and password cannot be empty.");
   }
-  if (getUserByEmail(email, users)) { 
+  if (getUserByEmail(email, users)) { // Update function call
     return res.status(400).send("Email is already registered.");
   }
 
   const userID = generateRandomString();
-  const hashedPassword = bcrypt.hashSync(password, 10); 
+  const hashedPassword = bcrypt.hashSync(password, 10); // Hash the password with bcrypt
   const newUser = {
     id: userID,
     email: email,
-    password: hashedPassword 
+    password: hashedPassword // Store the hashed password
   };
   users[userID] = newUser;
   req.session.user_id = userID;
@@ -168,7 +169,7 @@ app.get("/urls", (req, res) => {
   if (!user) {
     return res.status(403).send("<html><body><h3>You must be logged in to view URLs</h3></body></html>");
   }
-  const userURLs = urlsForUser(user.id);
+  const userURLs = urlsForUser(user.id, urlDatabase); // Update function call
   const templateVars = {
     urls: userURLs,
     user: user
@@ -221,14 +222,4 @@ function generateRandomString() {
     result += characters[randomIndex];
   }
   return result;
-}
-
-function urlsForUser(id) {
-  let userURLs = {};
-  for (let shortURL in urlDatabase) {
-    if (urlDatabase[shortURL].userID === id) {
-      userURLs[shortURL] = urlDatabase[shortURL];
-    }
-  }
-  return userURLs;
 }
