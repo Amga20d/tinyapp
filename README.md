@@ -23,6 +23,7 @@ cookie-session
 ## Dev Dependencies
 Mocha (for testing)
 Chai (for assertions in testing)
+nodemon
 
 ## Getting Started
 Clone the repository to your local machine.
