@@ -67,6 +67,12 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars); 
 });
 
+app.get("/login", (req, res) => {
+  const user = users[req.cookies["user_id"]];
+  const templateVars = { user: user };
+  res.render("login", templateVars);
+});  
+
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
