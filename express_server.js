@@ -70,12 +70,18 @@ app.post("/logout", (req, res) => {
 
 app.get("/register", (req, res) => {
   const user = users[req.cookies["user_id"]];
+  if (user) {
+    return res.redirect('/urls');
+  }  
   const templateVars = { user: user };
   res.render("register", templateVars); 
 });
 
 app.get("/login", (req, res) => {
   const user = users[req.cookies["user_id"]];
+  if (user) {
+    return res.redirect('/urls');
+  }  
   const templateVars = { user: user };
   res.render("login", templateVars);
 });  
